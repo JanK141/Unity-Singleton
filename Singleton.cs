@@ -1,3 +1,12 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
 /// <summary>
     /// Over engineered singleton base class.
     /// After creating first instance of it on the scene it will automatically create a prefab
@@ -5,7 +14,7 @@
     /// </summary>
     /// <typeparam name="T">Class deriving from singleton</typeparam>
     [ExecuteAlways]
-    public class MM_Singleton<T> : MonoBehaviour where T : MonoBehaviour
+    public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         [SerializeField, Tooltip("Should this instance persist between scenes?")] private bool _isPersistant = false;
         [SerializeField, Tooltip("If new instance is loaded, should this one be destroyed?")] private bool _isReplacable = false;
@@ -50,8 +59,8 @@
         }
         protected virtual void Reset()
         {
-            if (gameObject.GetComponentsInChildren<MonoBehaviour>().Where(m => m != this && m.GetType().BaseType.IsGenericType && m.GetType().BaseType.GetGenericTypeDefinition() == typeof(MM_Singleton<>)).Count() > 0
-                || gameObject.GetComponentsInParent<MonoBehaviour>().Where(m => m != this && m.GetType().BaseType.IsGenericType && m.GetType().BaseType.GetGenericTypeDefinition() == typeof(MM_Singleton<>)).Count() > 0)
+            if (gameObject.GetComponentsInChildren<MonoBehaviour>().Where(m => m != this && m.GetType().BaseType.IsGenericType && m.GetType().BaseType.GetGenericTypeDefinition() == typeof(Singleton<>)).Count() > 0
+                || gameObject.GetComponentsInParent<MonoBehaviour>().Where(m => m != this && m.GetType().BaseType.IsGenericType && m.GetType().BaseType.GetGenericTypeDefinition() == typeof(Singleton<>)).Count() > 0)
             {
                 Debug.LogError("Game object can hold only one singleton");
                 DestroyImmediate(this);
@@ -79,7 +88,7 @@
                 {
                     var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
                     Selection.activeGameObject = go;
-                    if((prefab.GetComponent<T>() as MM_Singleton<T>)._createVariants)
+                    if((prefab.GetComponent<T>() as Singleton<T>)._createVariants)
                     {
                         PrefabUtility.SaveAsPrefabAssetAndConnect(go, $"Assets/Resources/Singletons/{GetType().Name}-{EditorSceneManager.GetActiveScene().name}.prefab", InteractionMode.AutomatedAction);
                         Debug.LogWarning($"Created a prefab variant for {EditorSceneManager.GetActiveScene().name} scene. If no instance present, this scene will reffer to that variant instead of the original one.");
@@ -121,7 +130,7 @@
             }
             else if (_instance.GetInstanceID() != GetInstanceID())
             {
-                if ((_instance as MM_Singleton<T>)._isReplacable) Destroy(_instance.gameObject);
+                if ((_instance as Singleton<T>)._isReplacable) Destroy(_instance.gameObject);
                 else Destroy(gameObject);
             }
         }
